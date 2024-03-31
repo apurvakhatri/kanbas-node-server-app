@@ -7,13 +7,6 @@ const assignment = {
     score: 0,
 };
 
-const module = {
-    id: 1,
-    name: "Large Scale Parallel and Distribution Systems",
-    description: "Parallel Programming in MapReduce and Spark.",
-    Course: "CS6240",
-};
-
 const todos = [
     { id: 1, title: "Task 1", completed: false, description: "Description 1" },
     { id: 2, title: "Task 2", completed: false, description: "Description 2" },
@@ -22,42 +15,85 @@ const todos = [
 ];
 
 
-
 const Lab5 = (app) => {
+
+    app.put("/a5/todos/:id", (req, res) => {
+        const { id } = req.params;
+        const todo = todos.find((t) => t.id === parseInt(id));
+        if (!todo) {
+            res.res
+                .status(404)
+                .json({ message:
+                        `Unable to update Todo with ID ${id}` });
+            return;
+        }
+        todo.title = req.body.title;
+        todo.description = req.body.description;
+        todo.due = req.body.due;
+        todo.completed = req.body.completed;
+        res.sendStatus(200);
+    });
+
+    app.delete("/a5/todos/:id", (req, res) => {
+        const { id } = req.params;
+        const todo = todos.find((t) => t.id === parseInt(id));
+        if(!todo){
+            res.res
+                .status(404)
+                .json({ message:
+                        `Unable to delete Todo with ID ${id}` });
+            return;
+        }
+        todos.splice(todos.indexOf(todo), 1);
+        res.sendStatus(200);
+    });
+
+    app.post("/a5/todos", (req, res) => {
+        const newTodo = {
+            ...req.body,
+            id: new Date().getTime(),
+        };
+        todos.push(newTodo);
+        res.json(newTodo);
+    });
+
     app.get("/a5/todos", (req, res) => {
         const { completed } = req.query;
-        if (completed !== undefined) {
-            const completedBool = completed === "true";
-            const completedTodos = todos.filter(
-                (t) => t.completed === completedBool
-            );
+        if(completed !== undefined){
+            const completeState = completed === 'true';
+            const completedTodos = todos.filter((t) => {
+                return t.completed === completeState;
+            });
             res.json(completedTodos);
             return;
         }
         res.json(todos);
     });
 
-    app.get("/a5/todos/create", (req, res) => {
-        const newTodo = {
-          id: new Date().getTime(),
-          title: "New Task",
-          completed: false,
+    app.get('/a5/todos/create' , (req, res) => {
+        const newTodo ={
+            id: new Date().getTime(),
+            title: "New Task",
+            completed: false,
         };
         todos.push(newTodo);
         res.json(todos);
     });
 
-    app.get("/a5/todos/:id/delete", (req, res) => {
+    app.get('/a5/todos/:id/delete', (req, res) => {
         const { id } = req.params;
         const todo = todos.find((t) => t.id === parseInt(id));
-        const todoIndex = todos.indexOf(todo);
-        if (todoIndex !== -1) {
-          todos.splice(todoIndex, 1);
-        }
+        todos.splice(todos.indexOf(todo), 1);
         res.json(todos);
     });
 
-    app.get("/a5/todos/:id/title/:title", (req, res) => {
+    app.get('/a5/todos/:id', (req, res) => {
+        const { id } = req.params;
+        const todo = todos.find( (t) => t.id === parseInt(id));
+        res.json(todo);
+    })
+
+    app.get('/a5/todos/:id/title/:title', (req, res) => {
         const { id, title } = req.params;
         const todo = todos.find((t) => t.id === parseInt(id));
         todo.title = title;
@@ -79,23 +115,47 @@ const Lab5 = (app) => {
         res.json(todos);
     });
 
-
-
-
-    app.get("/a5/todos/:id", (req, res) => {
-        const { id } = req.params;
-        const todo = todos.find((t) => t.id === parseInt(id));
-        res.json(todo);
+    app.get('/a5/welcome', (req, res) => {
+        res.send("Welcome to Assignment 5");
     });
 
+    app.get('/a5/add/:a/:b', (req, res) => {
+        const { a, b } = req.params;
+        const sum = parseInt(a) + parseInt(b);
+        res.send(sum.toString());
+    });
 
-    app.get("/a5/assignment", (req, res) => {
+    app.get('/a5/subtract/:a/:b', (req, res) => {
+        const { a, b } = req.params;
+        const diff = parseInt(a) - parseInt(b);
+        res.send(diff.toString());
+    });
+
+    app.get('/a5/calculator', (req,res) => {
+        const { a, b, operation } = req.query;
+        let result = 0;
+        switch (operation) {
+            case 'add':
+                result = parseInt(a) + parseInt(b);
+                break;
+            case 'subtract':
+                result = parseInt(a) - parseInt(b);
+                break;
+            default:
+                result = "Invalid operation";
+        }
+        res.send(result.toString());
+    });
+
+    app.get('/a5/assignment', (req, res) => {
         res.json(assignment);
     });
-    app.get("/a5/assignment/title", (req, res) => {
+
+    app.get('/a5/assignment/title', (req, res) => {
         res.json(assignment.title);
     });
-    app.get("/a5/assignment/title/:newTitle", (req, res) => {
+
+    app.get('/a5/assignment/title/:newTitle', (req, res) => {
         const { newTitle } = req.params;
         assignment.title = newTitle;
         res.json(assignment);
@@ -112,61 +172,6 @@ const Lab5 = (app) => {
         assignment.completed = newCompleted === 'true';
         res.json(assignment);
     });
-
-    app.get("/a5/module", (req, res) => {
-        res.json(module);
-    });
-    app.get("/a5/module/name", (req, res) => {
-        res.json(module.name);
-    });
-    app.get("/a5/module/name/:newName", (req, res) => {
-        const { newName } = req.params;
-        module.name = newName;
-        res.json(module);
-    });
-    app.get("/a5/welcome", (req, res) => {
-      res.send("Welcome to Assignment 5");
-    });
-    app.get("/a5/add/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const sum = parseInt(a) + parseInt(b);
-        res.send(sum.toString());
-    });
-    app.get("/a5/multiply/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const product = parseInt(a) * parseInt(b);
-        res.send(product.toString());
-    });
-    app.get("/a5/subtract/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const sum = parseInt(a) - parseInt(b);
-        res.send(sum.toString());
-    });
-    app.get("/a5/division/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const division = parseInt(a) / parseInt(b);
-        res.send(division.toString());
-    });
-    app.get("/a5/calculator", (req, res) => {
-        const { a, b, operation } = req.query;
-        let result = 0;
-        switch (operation) {
-          case "add":
-            result = parseInt(a) + parseInt(b);
-            break;
-          case "subtract":
-            result = parseInt(a) - parseInt(b);
-            break;
-        case "multiply":
-            result = parseInt(a) * parseInt(b);
-            break;
-        case "divide":
-            result = parseInt(a) / parseInt(b);
-            break;
-        default:
-            result = "Invalid operation";
-        }
-        res.send(result.toString());
-      });
 };
+
 export default Lab5;
