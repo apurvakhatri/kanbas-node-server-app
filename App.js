@@ -13,7 +13,8 @@ import Hello from "./Hello.js";
 const app = express();
 
 // Establish MongoDB connection
-mongoose.connect("mongodb+srv://khatriapurva2011:PAoHhNCReuZMq7lF@cluster0.zcqxcfq.mongodb.net/kanbas")
+const CONNECTION_STRING = process.env.DB_CONNECTION_STRING || 'mongodb://127.0.0.1:27017/kanbas'
+mongoose.connect(CONNECTION_STRING)
   .then(() => {
     console.log("MongoDB connected successfully!");
     console.log(mongoose.connection.readyState);
